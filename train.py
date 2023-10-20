@@ -29,19 +29,16 @@ class mean_pooling_layer(tf.keras.layers.Layer):
 
 def create_model():
     base_student_model = TFAutoModel.from_pretrained("distilbert-base-multilingual-cased",from_pt=True)
-    input_ids_en = tf.keras.layers.Input(shape=(128,),name='input_ids_en', dtype=tf.int32)
-    attention_mask_en = tf.keras.layers.Input(shape=(128,), name='attention_mask_en', dtype=tf.int32)
-    input_ids_id = tf.keras.layers.Input(shape=(128,),name='input_ids_id', dtype=tf.int32)
-    attention_mask_id = tf.keras.layers.Input(shape=(128,), name='attention_mask_id', dtype=tf.int32)
+    input_ids_en = tf.keras.layers.Input(shape=(256,),name='input_ids_en', dtype=tf.int32)
+    attention_mask_en = tf.keras.layers.Input(shape=(256,), name='attention_mask_en', dtype=tf.int32)
+    input_ids_id = tf.keras.layers.Input(shape=(256,),name='input_ids_id', dtype=tf.int32)
+    attention_mask_id = tf.keras.layers.Input(shape=(256,), name='attention_mask_id', dtype=tf.int32)
     mean_pooling = mean_pooling_layer()
 
-    output_en = base_student_model.distilbert(input_ids_en, attention_mask=attention_mask_en).last_hidden_state
-    output_id = base_student_model.distilbert(input_ids_id, attention_mask=attention_mask_id).last_hidden_state
+    output_en = base_student_model.distilbert(input_ids_en, attention_mask=attention_mask_en).last_hidden_state[:,0,:]
+    output_id = base_student_model.distilbert(input_ids_id, attention_mask=attention_mask_id).last_hidden_state[:,0,:]
 
-    mean_en = mean_pooling([output_en, attention_mask_en])
-    mean_id = mean_pooling([output_id, attention_mask_id])
-
-    student_model = tf.keras.Model(inputs=[input_ids_en, attention_mask_en, input_ids_id, attention_mask_id], outputs=[mean_en, mean_id])
+    student_model = tf.keras.Model(inputs=[input_ids_en, attention_mask_en, input_ids_id, attention_mask_id], outputs=[output_en, output_id])
     print(student_model.summary())
     return student_model
 
@@ -51,8 +48,6 @@ class sentence_translation_metric(tf.keras.callbacks.Callback):
         # get the embeddings
         # compute the cosine similarity between the two 
         #normalize the embeddings
-        embeddings_en = tf.math.l2_normalize(embeddings_en, axis=1)
-        embeddings_id = tf.math.l2_normalize(embeddings_id, axis=1)
         similarity_matrix = tf.matmul(embeddings_en, embeddings_id, transpose_b=True)
         print(f"==>> similarity_matrix: {similarity_matrix}")
         # get the mean similarity
@@ -128,8 +123,8 @@ if __name__ == "__main__":
     val_dataset = val_dataset.batch(batch_size, drop_remainder=True).cache()
 
 
-    learning_rate = ConstantScheduler(2e-5, warmup_steps=1000)
-
+    warm_up_steps = 5_000_000 / batch_size *0.1
+    learning_rate = ConstantScheduler(2e-5, warmup_steps= warm_up_steps)
 
     optimizer = tf.keras.optimizers.Adam(learning_rate, beta_1=0.9, beta_2=0.98,
                                         epsilon=1e-9)
@@ -138,7 +133,6 @@ if __name__ == "__main__":
     loss = tf.keras.losses.MeanSquaredError() 
     
     date_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
 
     output_path = here(f"disk/model/{date_time}/model.h5")
 
