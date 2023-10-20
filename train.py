@@ -97,7 +97,7 @@ if __name__ == "__main__":
     
 
     batch_size = 512
-    dataset = dataset_1.train_test_split(test_size=0.005, shuffle=True)
+    dataset = dataset_1.train_test_split(test_size=0.01, shuffle=True)
     train_dataset = dataset["train"]
     val_dataset = dataset["test"]
 

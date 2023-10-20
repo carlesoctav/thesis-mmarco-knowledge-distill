@@ -13,14 +13,14 @@ tokenizer = AutoTokenizer.from_pretrained("distilbert-base-multilingual-cased")
 weights = model.get_weights()
 
 
-model.load_weights("disk/model/last_epoch/2023-10-09_02-50-15.h5")
+model.load_weights("disk/model/last_epoch/2023-10-20_02-16-33.h5")
 
 
 model.push_to_hub(
-    "carles-undergrad-thesis/distillbert-en-id-mmarco-knowledge-distillation",
+    "carles-undergrad-thesis/distillbert-tasb-en-id-mmarco-knowledge-distillation",
 )
 
 tokenizer.push_to_hub(
-    "carles-undergrad-thesis/distillbert-en-id-mmarco-knowledge-distillation",
+    "carles-undergrad-thesis/distillbert-tasb-en-id-mmarco-knowledge-distillation",
 )
 

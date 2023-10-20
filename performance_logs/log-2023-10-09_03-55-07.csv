@@ -1,0 +1,2 @@
+epoch,loss,mean_pooling_layer_1_loss,mean_pooling_layer_loss,val_acc_en_id,val_acc_id_en,val_avg_acc,val_loss,val_mean_pooling_layer_1_loss,val_mean_pooling_layer_loss
+0,0.3967494070529938,0.20059731602668762,0.19615182280540466,0.9381510416666666,0.9162326388888888,0.9271918402777777,0.3133997917175293,0.1618441790342331,0.151555597782135
