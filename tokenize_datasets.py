@@ -3,11 +3,11 @@ from transformers import AutoTokenizer, AutoModel
 import torch
 from torch.nn import functional as F
 from sentence_transformers import SentenceTransformer
+import torch_xla.core.xla_model as xm
+device = xm.xla_device()
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-student_tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-uncased")
-parent_tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/msmarco-bert-base-dot-v5")
+student_tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-uncased", use_fast=True)
+parent_tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/msmarco-bert-base-dot-v5", use_fast=True)
 parent_model = AutoModel.from_pretrained("sentence-transformers/msmarco-bert-base-dot-v5")
 
 def embedding(datasets, parent_model, parent_tokenizer):
@@ -56,7 +56,7 @@ def tokenize(datasets, student_tokenizer):
             "token_type_ids_id": output_id.token_type_ids,
         }
 
-    tokenized_datasets = datasets.map(tokenize_batch, batched=True, num_proc=16)
+    tokenized_datasets = datasets.map(tokenize_batch, batched=True, num_proc=90)
     return tokenized_datasets
 
 
